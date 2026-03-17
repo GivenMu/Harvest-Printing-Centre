@@ -107,7 +107,7 @@ window.addEventListener('mousemove', (e) => {
   mouseGlow.style.top = `${e.clientY}px`;
 });
 
-// TILT EFFECT FOR CARDS
+// TILT EFFECT
 const tiltItems = document.querySelectorAll('.card, .service-item, .price-box, .step-card, .metric-card');
 
 tiltItems.forEach(item => {
@@ -126,6 +126,7 @@ tiltItems.forEach(item => {
     item.style.transform = '';
   });
 });
+
 // PHONE PARALLAX
 const phoneCard = document.querySelector('.phone-story-card');
 
@@ -134,5 +135,44 @@ if (phoneCard) {
     const x = (window.innerWidth / 2 - e.clientX) / 45;
     const y = (window.innerHeight / 2 - e.clientY) / 45;
     phoneCard.style.transform = `translate(${x}px, ${y}px)`;
+  });
+}
+
+// =========================
+// 🔥 FORM SUBMIT (WEB3FORMS)
+// =========================
+const bookingForm = document.querySelector(".booking-form");
+const formStatus = document.getElementById("form-status");
+
+if (bookingForm) {
+  bookingForm.addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    formStatus.innerHTML = "Sending...";
+    formStatus.style.color = "#555";
+
+    const formData = new FormData(bookingForm);
+
+    try {
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        formStatus.innerHTML = "✅ Booking sent successfully!";
+        formStatus.style.color = "green";
+        bookingForm.reset();
+      } else {
+        formStatus.innerHTML = "❌ Failed. Try again.";
+        formStatus.style.color = "red";
+      }
+
+    } catch (error) {
+      formStatus.innerHTML = "⚠️ Network error.";
+      formStatus.style.color = "orange";
+    }
   });
 }
