@@ -242,10 +242,6 @@ header.scrolled {
   pointer-events: none;
 }
 
-.home-hero-advanced::before {
-  display: none;
-}
-
 .home-hero-advanced .container {
   position: relative;
   z-index: 2;
