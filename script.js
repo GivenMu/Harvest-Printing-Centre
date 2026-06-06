@@ -1,14 +1,19 @@
+// MOBILE MENU
+
+```javascript
 const body = document.body;
 const header = document.querySelector('header');
 const menuToggle = document.querySelector('.menu-toggle');
 const navMenu = document.querySelector('.nav-menu');
 
-// MOBILE MENU
 if (menuToggle && navMenu) {
   menuToggle.addEventListener('click', () => {
     navMenu.classList.toggle('active');
     body.classList.toggle('menu-open');
-    menuToggle.setAttribute('aria-expanded', navMenu.classList.contains('active'));
+    menuToggle.setAttribute(
+      'aria-expanded',
+      navMenu.classList.contains('active')
+    );
   });
 
   document.querySelectorAll('.nav-menu a').forEach(link => {
@@ -23,7 +28,11 @@ if (menuToggle && navMenu) {
     const clickedInsideMenu = navMenu.contains(e.target);
     const clickedToggle = menuToggle.contains(e.target);
 
-    if (!clickedInsideMenu && !clickedToggle && navMenu.classList.contains('active')) {
+    if (
+      !clickedInsideMenu &&
+      !clickedToggle &&
+      navMenu.classList.contains('active')
+    ) {
       navMenu.classList.remove('active');
       body.classList.remove('menu-open');
       menuToggle.setAttribute('aria-expanded', 'false');
@@ -34,6 +43,7 @@ if (menuToggle && navMenu) {
 // HEADER SCROLL EFFECT
 const handleHeaderScroll = () => {
   if (!header) return;
+
   if (window.scrollY > 20) {
     header.classList.add('scrolled');
   } else {
@@ -51,8 +61,12 @@ document.body.appendChild(progressBar);
 
 const updateProgressBar = () => {
   const scrollTop = window.scrollY;
-  const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-  const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+  const docHeight =
+    document.documentElement.scrollHeight - window.innerHeight;
+
+  const progress =
+    docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+
   progressBar.style.width = `${progress}%`;
 };
 
@@ -62,14 +76,17 @@ updateProgressBar();
 // REVEAL ON SCROLL
 const revealItems = document.querySelectorAll('.fade-up');
 
-const revealObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('show');
-      revealObserver.unobserve(entry.target);
-    }
-  });
-}, { threshold: 0.14 });
+const revealObserver = new IntersectionObserver(
+  (entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('show');
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  },
+  { threshold: 0.14 }
+);
 
 revealItems.forEach(item => {
   revealObserver.observe(item);
@@ -80,11 +97,12 @@ const hero = document.querySelector('.hero');
 
 window.addEventListener('scroll', () => {
   if (!hero) return;
+
   const offset = window.scrollY * 0.2;
   hero.style.backgroundPosition = `center ${offset}px`;
 });
 
-// BUTTON RIPPLE
+// BUTTON HOVER EFFECT
 document.querySelectorAll('.btn').forEach(button => {
   button.addEventListener('mouseenter', () => {
     button.style.transform = 'translateY(-3px)';
@@ -95,7 +113,7 @@ document.querySelectorAll('.btn').forEach(button => {
   });
 });
 
-console.log('Harvest Printing Centre advanced premium website loaded.');
+console.log('Harvest Printing Centre website loaded successfully.');
 
 // MOUSE GLOW
 const mouseGlow = document.createElement('div');
@@ -108,18 +126,25 @@ window.addEventListener('mousemove', (e) => {
 });
 
 // TILT EFFECT
-const tiltItems = document.querySelectorAll('.card, .service-item, .price-box, .step-card, .metric-card');
+const tiltItems = document.querySelectorAll(
+  '.card, .service-item, .price-box, .step-card, .metric-card'
+);
 
 tiltItems.forEach(item => {
   item.addEventListener('mousemove', (e) => {
     const rect = item.getBoundingClientRect();
+
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
     const rotateY = ((x / rect.width) - 0.5) * 8;
     const rotateX = ((y / rect.height) - 0.5) * -8;
 
-    item.style.transform = `perspective(900px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-8px)`;
+    item.style.transform =
+      `perspective(900px)
+       rotateX(${rotateX}deg)
+       rotateY(${rotateY}deg)
+       translateY(-8px)`;
   });
 
   item.addEventListener('mouseleave', () => {
@@ -132,47 +157,14 @@ const phoneCard = document.querySelector('.phone-story-card');
 
 if (phoneCard) {
   window.addEventListener('mousemove', (e) => {
-    const x = (window.innerWidth / 2 - e.clientX) / 45;
-    const y = (window.innerHeight / 2 - e.clientY) / 45;
-    phoneCard.style.transform = `translate(${x}px, ${y}px)`;
+    const x =
+      (window.innerWidth / 2 - e.clientX) / 45;
+
+    const y =
+      (window.innerHeight / 2 - e.clientY) / 45;
+
+    phoneCard.style.transform =
+      `translate(${x}px, ${y}px)`;
   });
 }
-
-// =========================
-// 🔥 FORM SUBMIT (WEB3FORMS)
-// =========================
-const bookingForm = document.querySelector(".booking-form");
-const formStatus = document.getElementById("form-status");
-
-if (bookingForm) {
-  bookingForm.addEventListener("submit", async function (e) {
-    e.preventDefault();
-
-    formStatus.innerHTML = "Sending...";
-    formStatus.style.color = "#555";
-
-    const formData = new FormData(bookingForm);
-
-    try {
-      const response = await fetch("https://api.web3forms.com/submit", {
-        method: "POST",
-        body: formData
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        formStatus.innerHTML = "✅ Booking sent successfully!";
-        formStatus.style.color = "green";
-        bookingForm.reset();
-      } else {
-        formStatus.innerHTML = "❌ Failed. Try again.";
-        formStatus.style.color = "red";
-      }
-
-    } catch (error) {
-      formStatus.innerHTML = "⚠️ Network error.";
-      formStatus.style.color = "orange";
-    }
-  });
-}
+```
