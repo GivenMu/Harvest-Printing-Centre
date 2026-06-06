@@ -56,6 +56,8 @@ Harvest-Printing-Centre/
 ├── portfolio.html
 ├── booking.html
 ├── contact.html
+├── admin-bookings.html
 ├── style.css
 ├── script.js
+├── firebase.js
 └── README.md
