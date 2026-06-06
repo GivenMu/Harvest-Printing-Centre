@@ -130,6 +130,7 @@ header.scrolled {
   justify-content: space-between;
   gap: 20px;
   padding: 18px 0;
+  flex-wrap: nowrap;          /* keep logo + toggle on same row always */
 }
 
 .logo {
@@ -143,6 +144,8 @@ header.scrolled {
   color: var(--black);
   letter-spacing: 0.2px;
   z-index: 10;
+  white-space: nowrap;        /* never wrap to a second line */
+  flex-shrink: 0;             /* don't shrink inside flex navbar */
 }
 
 .logo span {
@@ -1056,6 +1059,18 @@ footer a:hover {
 
   .container {
     width: 92%;
+  }
+
+  /* LOGO FIX — keep on one line, scale down on small screens */
+  .logo {
+    font-size: 1.05rem;
+    gap: 6px;
+  }
+
+  .logo::before {
+    width: 11px;
+    height: 11px;
+    flex-shrink: 0;
   }
 
   /* HERO FIX */
