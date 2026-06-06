@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -47,25 +48,14 @@
   <div class="container fade-up">
     <p class="section-tag">Online Booking</p>
     <h1>Book a Service or Send an Order</h1>
-    <p>Fill in your details below and your request will be sent directly to email.</p>
+    <p>Fill in your details below and your request will be saved securely.</p>
   </div>
 </section>
 
 <section class="section">
   <div class="container form-wrapper">
 
-    <!-- ✅ WEB3FORMS -->
-    <form class="booking-form premium-form fade-up"
-      action="https://api.web3forms.com/submit"
-      method="POST"
-      enctype="multipart/form-data">
-
-      <!-- REQUIRED -->
-      <input type="hidden" name="access_key" value="53c53bde-bff6-4db5-bb40-06105f7b483f">
-
-      <!-- CONFIG -->
-      <input type="hidden" name="subject" value="New Booking from Harvest Website">
-      <input type="hidden" name="from_name" value="Harvest Website">
+    <form class="booking-form premium-form fade-up">
 
       <div class="form-grid">
 
@@ -118,12 +108,18 @@
       </div>
 
       <label>Project Details</label>
-      <textarea name="message" rows="6" placeholder="Describe your project"></textarea>
+      <textarea
+        name="message"
+        rows="6"
+        placeholder="Describe your project"></textarea>
 
-      <button type="submit" class="btn btn-primary full-btn">Submit Booking</button>
+      <button type="submit" class="btn btn-primary full-btn">
+        Submit Booking
+      </button>
 
-      <!-- STATUS -->
-      <div id="form-status" style="margin-top:15px;font-weight:700;"></div>
+      <div id="form-status"
+           style="margin-top:15px;font-weight:700;">
+      </div>
 
     </form>
 
@@ -162,7 +158,8 @@
 </footer>
 
 <script src="script.js"></script>
-
+<script type="module" src="firebase.js"></script>
 
 </body>
 </html>
+```
