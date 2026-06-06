@@ -212,9 +212,18 @@ header.scrolled {
   position: relative;
   overflow: hidden;
   color: var(--white);
+
   background:
-    linear-gradient(115deg, rgba(5,5,8,0.95), rgba(8,8,10,0.74)),
-    url('images/ChatGPT\ Image\ Mar\ 9\,\ 2026\,\ 12_04_23\ AM.png') center/cover no-repeat;
+    linear-gradient(
+      115deg,
+      rgba(5,5,8,0.78),
+      rgba(8,8,10,0.55)
+    ),
+    url('images/ChatGPT Image Mar 9, 2026, 12_04_23 AM.png');
+
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 55%;
 }
 
 .hero::before,
@@ -1044,9 +1053,13 @@ footer a:hover {
 
 @media (max-width: 640px) {
 
-  .container {
-    width: 92%;
+  .hero,
+  .page-hero {
+    background-size: 75%;
+    background-position: center 25%;
   }
+
+}
 
   /* HERO FIX */
   .hero {
