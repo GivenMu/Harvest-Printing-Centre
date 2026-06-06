@@ -1,6 +1,4 @@
-// MOBILE MENU
 
-```javascript
 const body = document.body;
 const header = document.querySelector('header');
 const menuToggle = document.querySelector('.menu-toggle');
@@ -167,4 +165,4 @@ if (phoneCard) {
       `translate(${x}px, ${y}px)`;
   });
 }
-```
+
