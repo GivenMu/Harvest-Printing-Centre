@@ -213,15 +213,8 @@ header.scrolled {
   overflow: hidden;
   color: var(--white);
   background:
-    linear-gradient(
-      115deg,
-      rgba(5,5,8,0.78),
-      rgba(8,8,10,0.55)
-    ),
-    url('images/ChatGPT Image Mar 9, 2026, 12_04_23 AM.png');
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-size: 55%;
+    linear-gradient(115deg, rgba(5,5,8,0.95), rgba(8,8,10,0.74)),
+    url('images/ChatGPT\ Image\ Mar\ 9\,\ 2026\,\ 12_04_23\ AM.png') center/cover no-repeat;
 }
 
 .hero::before,
@@ -247,6 +240,23 @@ header.scrolled {
   background-size: 70px 70px;
   mask-image: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent 90%);
   pointer-events: none;
+}
+
+.home-hero-advanced::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background: url('images/ChatGPT Image Mar 9, 2026, 12_04_23 AM.png')
+              center center / 70% auto no-repeat;
+
+  opacity: 0.25;
+  z-index: 1;
+}
+
+.home-hero-advanced .container {
+  position: relative;
+  z-index: 2;
 }
 
 .hero .container,
@@ -1047,22 +1057,16 @@ footer a:hover {
   }
 }
 
-@media (max-width: 768px) {
-  .hero,
-  .page-hero {
-    background-size: 85%;
-    background-position: center 30%;
-    min-height: auto;
-    padding: 80px 0 70px;
-  }
-}
-
 @media (max-width: 640px) {
-  .hero,
-  .page-hero {
-    background-size: 95%;
-    background-position: center 25%;
+
+  .container {
+    width: 92%;
+  }
+
+  /* HERO FIX */
+  .hero {
     padding: 70px 0 60px;
+    min-height: auto;
   }
 
   .hero-grid {
@@ -1110,6 +1114,14 @@ footer a:hover {
     width: 100%;
   }
 
+  /* IMPORTANT */
+  .hero,
+  .page-hero {
+    background-size: contain;
+    background-position: center top;
+    background-repeat: no-repeat;
+  }
+
   .floating-shape {
     display: none;
   }
@@ -1144,6 +1156,16 @@ footer a:hover {
     font-size: 0.9rem;
   }
 }
+  .gallery-item {
+    min-height: 240px;
+  }
+
+  .whatsapp-float {
+    right: 14px;
+    bottom: 14px;
+    padding: 12px 16px;
+  }
+}
 
 body::before,
 body::after {
@@ -1173,8 +1195,12 @@ body::after {
 }
 
 @keyframes floatGlow {
-  0%, 100% { transform: translate(0,0) scale(1); }
-  50% { transform: translate(40px, 30px) scale(1.08); }
+  0%, 100% {
+    transform: translate(0,0) scale(1);
+  }
+  50% {
+    transform: translate(40px, 30px) scale(1.08);
+  }
 }
 
 /* fancy section divider */
@@ -1204,7 +1230,9 @@ body::after {
 }
 
 @keyframes shimmerText {
-  to { background-position: 200% center; }
+  to {
+    background-position: 200% center;
+  }
 }
 
 /* premium nav glow */
@@ -1429,9 +1457,15 @@ body::after {
 }
 
 @keyframes whatsappPulse {
-  0% { box-shadow: 0 0 0 0 rgba(13, 187, 82, 0.36), 0 16px 34px rgba(13, 187, 82, 0.28); }
-  70% { box-shadow: 0 0 0 18px rgba(13, 187, 82, 0), 0 16px 34px rgba(13, 187, 82, 0.28); }
-  100% { box-shadow: 0 0 0 0 rgba(13, 187, 82, 0), 0 16px 34px rgba(13, 187, 82, 0.28); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(13, 187, 82, 0.36), 0 16px 34px rgba(13, 187, 82, 0.28);
+  }
+  70% {
+    box-shadow: 0 0 0 18px rgba(13, 187, 82, 0), 0 16px 34px rgba(13, 187, 82, 0.28);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(13, 187, 82, 0), 0 16px 34px rgba(13, 187, 82, 0.28);
+  }
 }
 
 /* footer luxury glow */
@@ -1524,8 +1558,12 @@ footer {
 }
 
 @keyframes floatShape {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-18px); }
+  0%,100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-18px);
+  }
 }
 
 /* responsive polish */
@@ -1549,7 +1587,6 @@ footer {
     width: 56px;
   }
 }
-
 /* CONTACT PAGE ADVANCED */
 .contact-hero .container {
   max-width: 820px;
@@ -1796,7 +1833,6 @@ footer {
     height: 300px;
   }
 }
-
 /* HOME HERO ADVANCED */
 .home-hero-advanced .hero-grid {
   align-items: center;
@@ -1995,13 +2031,21 @@ footer {
 }
 
 @keyframes phoneFloat {
-  0%, 100% { transform: translateY(0px) rotate(-3deg); }
-  50% { transform: translateY(-14px) rotate(3deg); }
+  0%, 100% {
+    transform: translateY(0px) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(-14px) rotate(3deg);
+  }
 }
 
 @keyframes badgeFloat {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 /* TRUST STRIP */
