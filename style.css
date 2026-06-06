@@ -242,18 +242,6 @@ header.scrolled {
   pointer-events: none;
 }
 
-.home-hero-advanced::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-
-  background: url('images/ChatGPT Image Mar 9, 2026, 12_04_23 AM.png')
-              center center / 70% auto no-repeat;
-
-  opacity: 0.25;
-  z-index: 1;
-}
-
 .home-hero-advanced .container {
   position: relative;
   z-index: 2;
