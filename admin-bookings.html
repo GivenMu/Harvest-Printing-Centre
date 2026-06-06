@@ -1,0 +1,193 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Harvest Printing Centre | Admin Dashboard</title>
+
+<link rel="stylesheet" href="style.css">
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background:#f4f6f9;
+    margin:0;
+}
+
+.admin-header{
+    background:#111827;
+    color:white;
+    padding:20px;
+    text-align:center;
+}
+
+.admin-container{
+    max-width:1200px;
+    margin:30px auto;
+    padding:20px;
+}
+
+.bookings-table{
+    width:100%;
+    border-collapse:collapse;
+    background:white;
+    box-shadow:0 5px 15px rgba(0,0,0,0.08);
+}
+
+.bookings-table th,
+.bookings-table td{
+    border:1px solid #ddd;
+    padding:12px;
+    text-align:left;
+}
+
+.bookings-table th{
+    background:#111827;
+    color:white;
+}
+
+.bookings-table tr:nth-child(even){
+    background:#f9f9f9;
+}
+
+.loading{
+    text-align:center;
+    padding:20px;
+    font-weight:bold;
+}
+
+.total-bookings{
+    margin-bottom:20px;
+    font-size:18px;
+    font-weight:bold;
+}
+</style>
+
+</head>
+<body>
+
+<script>
+const password = prompt("Enter Admin Password");
+
+if(password !== "HPC@Admin2026"){
+    document.body.innerHTML = `
+        <div style="
+            height:100vh;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            flex-direction:column;
+            font-family:Arial;
+        ">
+            <h1>🔒 Access Denied</h1>
+            <p>Incorrect password.</p>
+        </div>
+    `;
+    throw new Error("Unauthorized Access");
+}
+</script>
+
+<header class="admin-header">
+    <h1>Harvest Printing Centre Admin Dashboard</h1>
+    <p>View all online bookings</p>
+</header>
+
+<div class="admin-container">
+
+    <div class="total-bookings">
+        Total Bookings:
+        <span id="booking-count">0</span>
+    </div>
+
+    <div id="loading" class="loading">
+        Loading bookings...
+    </div>
+
+    <table class="bookings-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Service</th>
+                <th>Quantity</th>
+                <th>Date</th>
+                <th>Message</th>
+            </tr>
+        </thead>
+
+        <tbody id="bookings-body"></tbody>
+    </table>
+
+</div>
+
+<script type="module">
+
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+
+import {
+    getFirestore,
+    collection,
+    getDocs
+}
+from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAObkg1J4OJGS9WQPo1u_d3wE0Yn0wz5KM",
+    authDomain: "harvest-printing-centre.firebaseapp.com",
+    projectId: "harvest-printing-centre",
+    storageBucket: "harvest-printing-centre.firebasestorage.app",
+    messagingSenderId: "895161653548",
+    appId: "1:895161653548:web:571e54b048783d5603f489",
+    measurementId: "G-4VZPDLK528"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const tableBody = document.getElementById("bookings-body");
+const loading = document.getElementById("loading");
+const bookingCount = document.getElementById("booking-count");
+
+async function loadBookings(){
+
+    const querySnapshot =
+    await getDocs(collection(db, "bookings"));
+
+    loading.style.display = "none";
+
+    let count = 0;
+
+    querySnapshot.forEach((doc)=>{
+
+        count++;
+
+        const booking = doc.data();
+
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+            <td>${booking.name || ""}</td>
+            <td>${booking.phone || ""}</td>
+            <td>${booking.email || ""}</td>
+            <td>${booking.service || ""}</td>
+            <td>${booking.quantity || ""}</td>
+            <td>${booking.date || ""}</td>
+            <td>${booking.message || ""}</td>
+        `;
+
+        tableBody.appendChild(row);
+    });
+
+    bookingCount.textContent = count;
+}
+
+loadBookings();
+
+</script>
+
+</body>
+</html>
