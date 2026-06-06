@@ -1,192 +1,677 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Harvest Printing Centre | Admin Dashboard</title>
 
-<link rel="stylesheet" href="style.css">
+<!-- jsPDF + AutoTable for PDF export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
 <style>
-body{
-    font-family: Arial, sans-serif;
-    background:#f4f6f9;
-    margin:0;
-}
+  /* ── Reset & base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-.admin-header{
-    background:#111827;
-    color:white;
-    padding:20px;
-    text-align:center;
-}
+  :root {
+    --dark:    #0f1623;
+    --dark2:   #1a2130;
+    --red:     #e10626;
+    --red2:    #ff3b57;
+    --white:   #ffffff;
+    --muted:   #8a93a6;
+    --border:  rgba(255,255,255,0.07);
+    --row-alt: #f7f9fc;
+    --shadow:  0 8px 32px rgba(0,0,0,0.18);
+  }
 
-.admin-container{
-    max-width:1200px;
-    margin:30px auto;
-    padding:20px;
-}
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #f0f2f7;
+    min-height: 100vh;
+  }
 
-.bookings-table{
-    width:100%;
-    border-collapse:collapse;
-    background:white;
-    box-shadow:0 5px 15px rgba(0,0,0,0.08);
-}
+  /* ══════════════════════════════════════
+     LOGIN OVERLAY
+  ══════════════════════════════════════ */
+  #login-overlay {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(135deg, #0a0f1a 0%, #141d2e 50%, #1a0a14 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
 
-.bookings-table th,
-.bookings-table td{
-    border:1px solid #ddd;
-    padding:12px;
-    text-align:left;
-}
+  .login-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 24px;
+    padding: 48px 40px;
+    width: min(420px, 92vw);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 32px 80px rgba(0,0,0,0.5);
+    text-align: center;
+  }
 
-.bookings-table th{
-    background:#111827;
-    color:white;
-}
+  .login-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
 
-.bookings-table tr:nth-child(even){
-    background:#f9f9f9;
-}
+  .login-logo-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--red), var(--red2));
+    box-shadow: 0 0 18px rgba(225,6,38,0.6);
+    flex-shrink: 0;
+  }
 
-.loading{
-    text-align:center;
-    padding:20px;
-    font-weight:bold;
-}
+  .login-logo-text {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 0.2px;
+  }
 
-.total-bookings{
-    margin-bottom:20px;
-    font-size:18px;
-    font-weight:bold;
-}
+  .login-logo-text span { color: var(--red2); }
+
+  .login-card h2 {
+    color: rgba(255,255,255,0.9);
+    font-size: 1.05rem;
+    font-weight: 500;
+    margin-bottom: 32px;
+    color: var(--muted);
+  }
+
+  .pw-field-wrap {
+    position: relative;
+    margin-bottom: 10px;
+  }
+
+  .pw-field-wrap input {
+    width: 100%;
+    padding: 15px 50px 15px 18px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.06);
+    color: #fff;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.25s, box-shadow 0.25s;
+    letter-spacing: 0.05em;
+  }
+
+  .pw-field-wrap input::placeholder { color: rgba(255,255,255,0.3); }
+
+  .pw-field-wrap input:focus {
+    border-color: rgba(225,6,38,0.5);
+    box-shadow: 0 0 0 4px rgba(225,6,38,0.12);
+  }
+
+  /* Eyeball toggle button */
+  .toggle-pw {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    color: rgba(255,255,255,0.4);
+    display: flex;
+    align-items: center;
+    transition: color 0.2s;
+  }
+
+  .toggle-pw:hover { color: rgba(255,255,255,0.85); }
+
+  .toggle-pw svg { width: 20px; height: 20px; }
+
+  #login-error {
+    color: #ff6b6b;
+    font-size: 0.88rem;
+    min-height: 20px;
+    margin-bottom: 16px;
+    display: none;
+  }
+
+  .login-btn {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--red), var(--red2));
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 12px 28px rgba(225,6,38,0.3);
+  }
+
+  .login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 36px rgba(225,6,38,0.4);
+  }
+
+  .login-btn:active { transform: translateY(0); }
+
+  /* ══════════════════════════════════════
+     MAIN DASHBOARD (hidden until login)
+  ══════════════════════════════════════ */
+  #dashboard { display: none; }
+
+  /* Header */
+  .admin-header {
+    background: linear-gradient(135deg, var(--dark), var(--dark2));
+    color: white;
+    padding: 22px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .header-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--red), var(--red2));
+    box-shadow: 0 0 16px rgba(225,6,38,0.55);
+    flex-shrink: 0;
+  }
+
+  .admin-header h1 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .admin-header h1 span { color: var(--red2); }
+  .admin-header p { color: rgba(255,255,255,0.55); font-size: 0.85rem; margin: 0; }
+
+  /* Container */
+  .admin-container {
+    max-width: 1280px;
+    margin: 30px auto;
+    padding: 0 24px;
+  }
+
+  /* Stats + actions bar */
+  .dashboard-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 22px;
+  }
+
+  .stat-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.07);
+    border-radius: 14px;
+    padding: 12px 20px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+  }
+
+  .stat-badge-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, rgba(225,6,38,0.1), rgba(255,59,87,0.08));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+  }
+
+  .stat-badge strong {
+    display: block;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #0f1623;
+    line-height: 1;
+  }
+
+  .stat-badge span {
+    color: #8a93a6;
+    font-size: 0.82rem;
+    font-weight: 500;
+  }
+
+  /* PDF button */
+  .pdf-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 12px 22px;
+    border: none;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--red), var(--red2));
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 10px 24px rgba(225,6,38,0.25);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .pdf-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(225,6,38,0.35);
+  }
+
+  .pdf-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+  /* Table card */
+  .table-card {
+    background: #fff;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+    border: 1px solid rgba(0,0,0,0.05);
+  }
+
+  .bookings-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .bookings-table thead {
+    background: linear-gradient(135deg, var(--dark), var(--dark2));
+  }
+
+  .bookings-table th {
+    color: rgba(255,255,255,0.85);
+    padding: 16px 14px;
+    text-align: left;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .bookings-table td {
+    padding: 14px 14px;
+    font-size: 0.9rem;
+    color: #1a2130;
+    border-bottom: 1px solid #f0f2f7;
+    vertical-align: top;
+  }
+
+  .bookings-table tbody tr:last-child td { border-bottom: none; }
+
+  .bookings-table tbody tr:nth-child(even) td { background: #fafbfd; }
+
+  .bookings-table tbody tr:hover td {
+    background: #fff5f6;
+    transition: background 0.15s;
+  }
+
+  /* Row number cell */
+  .bookings-table td:first-child {
+    color: var(--muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    width: 40px;
+  }
+
+  /* Service pill */
+  .service-pill {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    background: rgba(225,6,38,0.08);
+    color: var(--red);
+    border: 1px solid rgba(225,6,38,0.15);
+    white-space: nowrap;
+  }
+
+  /* Loading */
+  .loading {
+    text-align: center;
+    padding: 40px;
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+
+  .empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.35; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .admin-header { padding: 16px 18px; }
+    .admin-container { padding: 0 14px; }
+    .table-card { border-radius: 14px; overflow-x: auto; }
+    .bookings-table { min-width: 700px; }
+    .dashboard-bar { flex-direction: column; align-items: flex-start; }
+    .pdf-btn { width: 100%; justify-content: center; }
+  }
 </style>
-
 </head>
 <body>
 
-<script>
-const password = prompt("Enter Admin Password");
+<!-- ══════════════════════════════════════════
+     LOGIN OVERLAY
+══════════════════════════════════════════ -->
+<div id="login-overlay">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-dot"></div>
+      <div class="login-logo-text">Harvest <span>Printing Centre</span></div>
+    </div>
+    <h2>Admin Dashboard — Secure Login</h2>
 
-if(password !== "HPC@Admin2026"){
-    document.body.innerHTML = `
-        <div style="
-            height:100vh;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            flex-direction:column;
-            font-family:Arial;
-        ">
-            <h1>🔒 Access Denied</h1>
-            <p>Incorrect password.</p>
-        </div>
-    `;
-    throw new Error("Unauthorized Access");
-}
-</script>
-
-<header class="admin-header">
-    <h1>Harvest Printing Centre Admin Dashboard</h1>
-    <p>View all online bookings</p>
-</header>
-
-<div class="admin-container">
-
-    <div class="total-bookings">
-        Total Bookings:
-        <span id="booking-count">0</span>
+    <div class="pw-field-wrap">
+      <input
+        type="password"
+        id="pw-input"
+        placeholder="Enter admin password"
+        autocomplete="current-password"
+      />
+      <!-- Eyeball toggle -->
+      <button class="toggle-pw" id="toggle-pw" type="button" aria-label="Toggle password visibility">
+        <!-- Eye icon (visible when password is hidden) -->
+        <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+        </svg>
+        <!-- Eye-off icon (visible when password is shown) -->
+        <svg id="eye-off-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="display:none">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88L6.59 6.59m7.532 7.532l3.29 3.29M3 3l18 18"/>
+        </svg>
+      </button>
     </div>
 
-    <div id="loading" class="loading">
-        Loading bookings...
-    </div>
+    <p id="login-error">Incorrect password. Please try again.</p>
 
-    <table class="bookings-table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Phone</th>
-                <th>Email</th>
-                <th>Service</th>
-                <th>Quantity</th>
-                <th>Date</th>
-                <th>Message</th>
-            </tr>
-        </thead>
-
-        <tbody id="bookings-body"></tbody>
-    </table>
-
+    <button class="login-btn" id="login-btn">Unlock Dashboard</button>
+  </div>
 </div>
 
+<!-- ══════════════════════════════════════════
+     MAIN DASHBOARD
+══════════════════════════════════════════ -->
+<div id="dashboard">
+
+  <header class="admin-header">
+    <div class="header-left">
+      <div class="header-dot"></div>
+      <div>
+        <h1>Harvest <span>Printing Centre</span> — Admin</h1>
+        <p>All online booking records</p>
+      </div>
+    </div>
+  </header>
+
+  <div class="admin-container">
+
+    <div class="dashboard-bar">
+      <div class="stat-badge">
+        <div class="stat-badge-icon">📋</div>
+        <div>
+          <strong id="booking-count">0</strong>
+          <span>Total Bookings</span>
+        </div>
+      </div>
+
+      <button class="pdf-btn" id="download-pdf">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+        </svg>
+        Download as PDF
+      </button>
+    </div>
+
+    <div class="table-card">
+      <div id="loading" class="loading">Loading bookings…</div>
+
+      <table class="bookings-table" id="bookings-table" style="display:none">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Service</th>
+            <th>Quantity</th>
+            <th>Date</th>
+            <th>Message</th>
+          </tr>
+        </thead>
+        <tbody id="bookings-body"></tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════════ -->
+<script>
+  /* ── Password field: eyeball toggle ── */
+  const pwInput    = document.getElementById('pw-input');
+  const toggleBtn  = document.getElementById('toggle-pw');
+  const eyeIcon    = document.getElementById('eye-icon');
+  const eyeOffIcon = document.getElementById('eye-off-icon');
+
+  toggleBtn.addEventListener('click', () => {
+    const isHidden = pwInput.type === 'password';
+    pwInput.type       = isHidden ? 'text' : 'password';
+    eyeIcon.style.display    = isHidden ? 'none'  : '';
+    eyeOffIcon.style.display = isHidden ? ''      : 'none';
+  });
+
+  /* ── Login logic ── */
+  const CORRECT_PASSWORD = 'HPC@Admin2026';
+
+  function attemptLogin() {
+    const errorEl = document.getElementById('login-error');
+    if (pwInput.value === CORRECT_PASSWORD) {
+      document.getElementById('login-overlay').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      loadBookings();
+    } else {
+      errorEl.style.display = 'block';
+      pwInput.value = '';
+      pwInput.focus();
+      /* Shake animation */
+      pwInput.style.animation = 'none';
+      pwInput.offsetHeight; /* reflow */
+      pwInput.style.animation = 'shake 0.4s ease';
+    }
+  }
+
+  document.getElementById('login-btn').addEventListener('click', attemptLogin);
+  pwInput.addEventListener('keydown', e => { if (e.key === 'Enter') attemptLogin(); });
+</script>
+
+<style>
+  @keyframes shake {
+    0%,100%{ transform: translateX(0); }
+    20%    { transform: translateX(-8px); }
+    40%    { transform: translateX(8px); }
+    60%    { transform: translateX(-5px); }
+    80%    { transform: translateX(5px); }
+  }
+</style>
+
+<!-- Firebase + data loading -->
 <script type="module">
+  import { initializeApp }
+    from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+  import { getFirestore, collection, getDocs }
+    from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
-import { initializeApp }
-from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-
-import {
-    getFirestore,
-    collection,
-    getDocs
-}
-from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-
-const firebaseConfig = {
-    apiKey: "AIzaSyAObkg1J4OJGS9WQPo1u_d3wE0Yn0wz5KM",
-    authDomain: "harvest-printing-centre.firebaseapp.com",
-    projectId: "harvest-printing-centre",
-    storageBucket: "harvest-printing-centre.firebasestorage.app",
+  const firebaseConfig = {
+    apiKey:            "AIzaSyAObkg1J4OJGS9WQPo1u_d3wE0Yn0wz5KM",
+    authDomain:        "harvest-printing-centre.firebaseapp.com",
+    projectId:         "harvest-printing-centre",
+    storageBucket:     "harvest-printing-centre.firebasestorage.app",
     messagingSenderId: "895161653548",
-    appId: "1:895161653548:web:571e54b048783d5603f489",
-    measurementId: "G-4VZPDLK528"
-};
+    appId:             "1:895161653548:web:571e54b048783d5603f489",
+    measurementId:     "G-4VZPDLK528"
+  };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
 
-const tableBody = document.getElementById("bookings-body");
-const loading = document.getElementById("loading");
-const bookingCount = document.getElementById("booking-count");
+  /* Expose loadBookings globally so the login script can call it */
+  window.loadBookings = async function () {
+    const tableBody   = document.getElementById('bookings-body');
+    const loading     = document.getElementById('loading');
+    const bookingCount = document.getElementById('booking-count');
+    const table       = document.getElementById('bookings-table');
 
-async function loadBookings(){
+    try {
+      const querySnapshot = await getDocs(collection(db, 'bookings'));
 
-    const querySnapshot =
-    await getDocs(collection(db, "bookings"));
+      loading.style.display = 'none';
+      table.style.display   = '';
 
-    loading.style.display = "none";
+      let count = 0;
 
-    let count = 0;
-
-    querySnapshot.forEach((doc)=>{
-
+      querySnapshot.forEach((doc) => {
         count++;
+        const b = doc.data();
 
-        const booking = doc.data();
-
-        const row = document.createElement("tr");
-
+        const row = document.createElement('tr');
         row.innerHTML = `
-            <td>${booking.name || ""}</td>
-            <td>${booking.phone || ""}</td>
-            <td>${booking.email || ""}</td>
-            <td>${booking.service || ""}</td>
-            <td>${booking.quantity || ""}</td>
-            <td>${booking.date || ""}</td>
-            <td>${booking.message || ""}</td>
+          <td>${count}</td>
+          <td>${b.name     || '—'}</td>
+          <td>${b.phone    || '—'}</td>
+          <td>${b.email    || '—'}</td>
+          <td><span class="service-pill">${b.service  || '—'}</span></td>
+          <td>${b.quantity || '—'}</td>
+          <td>${b.date     || '—'}</td>
+          <td>${b.message  || '—'}</td>
         `;
-
         tableBody.appendChild(row);
+      });
+
+      bookingCount.textContent = count;
+
+      if (count === 0) {
+        loading.innerHTML = `
+          <div class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+            </svg>
+            <p>No bookings found yet.</p>
+          </div>`;
+        loading.style.display = 'block';
+        table.style.display   = 'none';
+      }
+
+    } catch (err) {
+      loading.textContent = 'Failed to load bookings. Check your connection.';
+      console.error(err);
+    }
+  };
+
+  /* ── PDF Download ── */
+  document.getElementById('download-pdf').addEventListener('click', () => {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+    /* Header bar */
+    doc.setFillColor(15, 22, 35);
+    doc.rect(0, 0, 297, 22, 'F');
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Harvest Printing Centre — Booking Records', 14, 14);
+
+    /* Timestamp */
+    const now = new Date().toLocaleString('en-ZA', { dateStyle: 'medium', timeStyle: 'short' });
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(180, 180, 180);
+    doc.text(`Generated: ${now}`, 14, 20);
+
+    /* Collect table rows from DOM */
+    const rows = [];
+    document.querySelectorAll('#bookings-body tr').forEach((tr, i) => {
+      const cells = tr.querySelectorAll('td');
+      rows.push([
+        i + 1,
+        cells[1]?.textContent.trim() || '',
+        cells[2]?.textContent.trim() || '',
+        cells[3]?.textContent.trim() || '',
+        cells[4]?.textContent.trim() || '',
+        cells[5]?.textContent.trim() || '',
+        cells[6]?.textContent.trim() || '',
+        cells[7]?.textContent.trim() || '',
+      ]);
     });
 
-    bookingCount.textContent = count;
-}
+    doc.autoTable({
+      startY: 26,
+      head: [['#', 'Name', 'Phone', 'Email', 'Service', 'Qty', 'Date', 'Message']],
+      body: rows,
+      headStyles: {
+        fillColor: [15, 22, 35],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 9,
+      },
+      bodyStyles: {
+        fontSize: 8.5,
+        textColor: [26, 33, 48],
+      },
+      alternateRowStyles: { fillColor: [247, 249, 252] },
+      columnStyles: {
+        0: { cellWidth: 10, halign: 'center' },
+        7: { cellWidth: 45 },
+      },
+      margin: { left: 14, right: 14 },
+      styles: { overflow: 'linebreak', cellPadding: 3.5 },
+      didDrawPage: (data) => {
+        /* Footer with page number */
+        const pageCount = doc.internal.getNumberOfPages();
+        doc.setFontSize(7.5);
+        doc.setTextColor(160, 160, 160);
+        doc.text(
+          `Page ${data.pageNumber} of ${pageCount}  •  Harvest Printing Centre`,
+          data.settings.margin.left,
+          doc.internal.pageSize.height - 8
+        );
+      }
+    });
 
-loadBookings();
-
+    const totalCount = document.getElementById('booking-count').textContent;
+    doc.save(`HPC_Bookings_${totalCount}_records_${new Date().toISOString().slice(0,10)}.pdf`);
+  });
 </script>
 
 </body>
