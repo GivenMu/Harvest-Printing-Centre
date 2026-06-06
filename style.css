@@ -130,7 +130,6 @@ header.scrolled {
   justify-content: space-between;
   gap: 20px;
   padding: 18px 0;
-  flex-wrap: nowrap;          /* keep logo + toggle on same row always */
 }
 
 .logo {
@@ -143,9 +142,6 @@ header.scrolled {
   font-weight: 800;
   color: var(--black);
   letter-spacing: 0.2px;
-  z-index: 10;
-  white-space: nowrap;        /* never wrap to a second line */
-  flex-shrink: 0;             /* don't shrink inside flex navbar */
 }
 
 .logo span {
@@ -425,19 +421,15 @@ header.scrolled {
   position: relative;
 }
 
-/* ============================================
-   GLASS CARD — transparent so hero logo shows
-   ============================================ */
 .glass-card {
   position: relative;
   padding: 30px;
   border-radius: 30px;
   width: 100%;
-  background: rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
+  background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.05));
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow: var(--shadow-dark);
+  backdrop-filter: blur(14px);
 }
 
 .glass-card::before {
@@ -446,11 +438,10 @@ header.scrolled {
   inset: 0;
   border-radius: inherit;
   padding: 1px;
-  background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent, rgba(225,6,38,0.15));
+  background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent, rgba(225,6,38,0.25));
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
           mask-composite: exclude;
-  pointer-events: none;
 }
 
 .hero-box h3 {
@@ -465,12 +456,11 @@ header.scrolled {
   gap: 12px;
 }
 
-/* Service list rows — fully transparent */
 .hero-box li {
   padding: 13px 15px;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
 }
 
 /* SECTIONS */
@@ -1061,18 +1051,6 @@ footer a:hover {
     width: 92%;
   }
 
-  /* LOGO FIX — keep on one line, scale down on small screens */
-  .logo {
-    font-size: 1.05rem;
-    gap: 6px;
-  }
-
-  .logo::before {
-    width: 11px;
-    height: 11px;
-    flex-shrink: 0;
-  }
-
   /* HERO FIX */
   .hero {
     padding: 70px 0 60px;
@@ -1124,10 +1102,11 @@ footer a:hover {
     width: 100%;
   }
 
+  /* IMPORTANT */
   .hero,
   .page-hero {
-    background-size: cover;
-    background-position: center center;
+    background-size: contain;
+    background-position: center top;
     background-repeat: no-repeat;
   }
 
@@ -1163,6 +1142,16 @@ footer a:hover {
     bottom: 14px;
     padding: 12px 16px;
     font-size: 0.9rem;
+  }
+}
+  .gallery-item {
+    min-height: 240px;
+  }
+
+  .whatsapp-float {
+    right: 14px;
+    bottom: 14px;
+    padding: 12px 16px;
   }
 }
 
@@ -1301,7 +1290,7 @@ body::after {
   background: linear-gradient(
     to right,
     transparent,
-    rgba(255,255,255,0.08),
+    rgba(255,255,255,0.18),
     transparent
   );
   transform: rotate(20deg);
@@ -1586,7 +1575,6 @@ footer {
     width: 56px;
   }
 }
-
 /* CONTACT PAGE ADVANCED */
 .contact-hero .container {
   max-width: 820px;
@@ -1833,7 +1821,6 @@ footer {
     height: 300px;
   }
 }
-
 /* HOME HERO ADVANCED */
 .home-hero-advanced .hero-grid {
   align-items: center;
