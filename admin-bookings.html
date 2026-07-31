@@ -204,6 +204,32 @@
   .admin-header h1 span { color: var(--red2); }
   .admin-header p { color: rgba(255,255,255,0.55); font-size: 0.85rem; margin: 0; }
 
+  /* Logout / return button */
+  .logout-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.14);
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.85);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, transform 0.2s;
+    white-space: nowrap;
+  }
+
+  .logout-btn:hover {
+    background: rgba(225,6,38,0.16);
+    border-color: rgba(225,6,38,0.4);
+    color: #fff;
+    transform: translateY(-1px);
+  }
+
+  .logout-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+
   /* Container */
   .admin-container {
     max-width: 1280px;
@@ -373,6 +399,7 @@
     .bookings-table { min-width: 700px; }
     .dashboard-bar { flex-direction: column; align-items: flex-start; }
     .pdf-btn { width: 100%; justify-content: center; }
+    .logout-btn { width: 100%; justify-content: center; }
   }
 </style>
 </head>
@@ -429,6 +456,13 @@
         <p>All online booking records</p>
       </div>
     </div>
+
+    <button class="logout-btn" id="logout-btn" type="button">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+      </svg>
+      Logout
+    </button>
   </header>
 
   <div class="admin-container">
@@ -512,6 +546,19 @@
 
   document.getElementById('login-btn').addEventListener('click', attemptLogin);
   pwInput.addEventListener('keydown', e => { if (e.key === 'Enter') attemptLogin(); });
+
+  /* ── Logout / Return to homepage ──
+     Clears the unlocked session (so the dashboard is locked again
+     if this page is revisited) and sends the admin back to index.html */
+  document.getElementById('logout-btn').addEventListener('click', () => {
+    // Reset UI back to locked state in case of any back/forward cache reuse
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('login-overlay').style.display = 'flex';
+    pwInput.value = '';
+
+    // Return to the site's homepage
+    window.location.href = 'index.html';
+  });
 </script>
 
 <style>
