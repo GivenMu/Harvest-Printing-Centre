@@ -214,16 +214,8 @@
       <div class="contact-right-stack">
 
         <!-- Contact form -->
-        <form class="booking-form premium-form fade-up delay-1 contact-form-advanced"
-              action="https://formsubmit.co/harvest8520print@gmail.com"
-              method="POST">
-
-          <!-- Email settings -->
-          <input type="hidden" name="_subject" value="New Contact Message from Harvest Website">
-          <input type="hidden" name="_captcha" value="false">
-          <input type="hidden" name="_template" value="table">
-
-          <!-- Form heading -->
+        <form id="contact-form" class="booking-form premium-form fade-up delay-1 contact-form-advanced">
+<!-- Form heading -->
           <div class="form-heading">
             <p class="section-tag">Send a Message</p>
             <h2>Request a Quote</h2>
@@ -235,22 +227,22 @@
 
             <div>
               <label>Full Name</label>
-              <input type="text" name="Full Name" placeholder="Enter your full name" required>
+              <input type="text" name="name" placeholder="Enter your full name" required>
             </div>
 
             <div>
               <label>Email Address</label>
-              <input type="email" name="Email Address" placeholder="Enter your email" required>
+              <input type="email" name="email" placeholder="Enter your email" required>
             </div>
 
             <div>
               <label>Phone Number</label>
-              <input type="tel" name="Phone Number" placeholder="Enter your phone number">
+              <input type="tel" name="phone" placeholder="Enter your phone number">
             </div>
 
             <div>
               <label>Service Needed</label>
-              <select name="Service Needed">
+              <select name="service">
                 <option value="">Select a service</option>
                 <option>Business Cards</option>
                 <option>Flyers / Printing</option>
@@ -271,12 +263,14 @@
 
           <!-- Message textarea -->
           <label>Message</label>
-          <textarea name="Message" rows="7"
+          <textarea name="message" rows="7"
           placeholder="Write your message, sizes, quantity, branding details or anything you need us to know."
           required></textarea>
 
           <!-- Submit button -->
           <button type="submit" class="btn btn-primary full-btn">Send Message</button>
+
+          <div id="form-status" style="margin-top:15px;font-weight:700;"></div>
 
         </form>
 
@@ -394,6 +388,7 @@
 
   <!-- External JavaScript -->
   <script src="script.js"></script>
+  <script type="module" src="forms.js"></script>
 
 </body>
 </html>

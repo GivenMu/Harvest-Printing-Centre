@@ -214,7 +214,7 @@ header.scrolled {
   color: var(--white);
   background:
     linear-gradient(115deg, rgba(5,5,8,0.95), rgba(8,8,10,0.74)),
-    url('images/ChatGPT\ Image\ Mar\ 9\,\ 2026\,\ 12_04_23\ AM.png') center/cover no-repeat;
+    url('images/hero-background.png') center/cover no-repeat;
 }
 
 .hero::before,
@@ -2149,3 +2149,6 @@ footer {
     padding: 24px;
   }
 }
+
+/* Note under the live price list */
+.price-note { margin-top: 18px; text-align: center; opacity: 0.8; font-size: 0.9rem; }

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta name="robots" content="noindex, nofollow">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Harvest Printing Centre | Admin Dashboard</title>
@@ -401,6 +402,8 @@
     .pdf-btn { width: 100%; justify-content: center; }
     .logout-btn { width: 100%; justify-content: center; }
   }
+  .login-help { color: #8a93a6; font-size: 0.9rem; margin: 0 0 18px; text-align: center; }
+  .section-heading { margin: 34px 0 14px; font-size: 1.15rem; }
 </style>
 </head>
 <body>
@@ -416,30 +419,11 @@
     </div>
     <h2>Admin Dashboard — Secure Login</h2>
 
-    <div class="pw-field-wrap">
-      <input
-        type="password"
-        id="pw-input"
-        placeholder="Enter admin password"
-        autocomplete="current-password"
-      />
-      <!-- Eyeball toggle -->
-      <button class="toggle-pw" id="toggle-pw" type="button" aria-label="Toggle password visibility">
-        <!-- Eye icon (visible when password is hidden) -->
-        <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-          <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-        </svg>
-        <!-- Eye-off icon (visible when password is shown) -->
-        <svg id="eye-off-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="display:none">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88L6.59 6.59m7.532 7.532l3.29 3.29M3 3l18 18"/>
-        </svg>
-      </button>
-    </div>
+    <p class="login-help">Sign in with an authorised Google account.</p>
 
-    <p id="login-error">Incorrect password. Please try again.</p>
+    <p id="login-error"></p>
 
-    <button class="login-btn" id="login-btn">Unlock Dashboard</button>
+    <button class="login-btn" id="login-btn" type="button">Sign in with Google</button>
   </div>
 </div>
 
@@ -453,7 +437,7 @@
       <div class="header-dot"></div>
       <div>
         <h1>Harvest <span>Printing Centre</span> — Admin</h1>
-        <p>All online booking records</p>
+        <p>Online bookings and enquiries · <span id="admin-email"></span></p>
       </div>
     </div>
 
@@ -473,6 +457,14 @@
         <div>
           <strong id="booking-count">0</strong>
           <span>Total Bookings</span>
+        </div>
+      </div>
+
+      <div class="stat-badge">
+        <div class="stat-badge-icon">✉️</div>
+        <div>
+          <strong id="contact-count">0</strong>
+          <span>Contact Enquiries</span>
         </div>
       </div>
 
@@ -504,62 +496,32 @@
       </table>
     </div>
 
+    <h2 class="section-heading">Contact enquiries</h2>
+    <div class="table-card">
+      <div id="contacts-loading" class="loading">Loading enquiries…</div>
+
+      <table class="bookings-table" id="contacts-table" style="display:none">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Service</th>
+            <th>Message</th>
+          </tr>
+        </thead>
+        <tbody id="contacts-body"></tbody>
+      </table>
+    </div>
+
   </div>
 </div>
 
 <!-- ══════════════════════════════════════════
      SCRIPTS
 ══════════════════════════════════════════ -->
-<script>
-  /* ── Password field: eyeball toggle ── */
-  const pwInput    = document.getElementById('pw-input');
-  const toggleBtn  = document.getElementById('toggle-pw');
-  const eyeIcon    = document.getElementById('eye-icon');
-  const eyeOffIcon = document.getElementById('eye-off-icon');
 
-  toggleBtn.addEventListener('click', () => {
-    const isHidden = pwInput.type === 'password';
-    pwInput.type       = isHidden ? 'text' : 'password';
-    eyeIcon.style.display    = isHidden ? 'none'  : '';
-    eyeOffIcon.style.display = isHidden ? ''      : 'none';
-  });
-
-  /* ── Login logic ── */
-  const CORRECT_PASSWORD = 'HPC@Admin2026';
-
-  function attemptLogin() {
-    const errorEl = document.getElementById('login-error');
-    if (pwInput.value === CORRECT_PASSWORD) {
-      document.getElementById('login-overlay').style.display = 'none';
-      document.getElementById('dashboard').style.display = 'block';
-      loadBookings();
-    } else {
-      errorEl.style.display = 'block';
-      pwInput.value = '';
-      pwInput.focus();
-      /* Shake animation */
-      pwInput.style.animation = 'none';
-      pwInput.offsetHeight; /* reflow */
-      pwInput.style.animation = 'shake 0.4s ease';
-    }
-  }
-
-  document.getElementById('login-btn').addEventListener('click', attemptLogin);
-  pwInput.addEventListener('keydown', e => { if (e.key === 'Enter') attemptLogin(); });
-
-  /* ── Logout / Return to homepage ──
-     Clears the unlocked session (so the dashboard is locked again
-     if this page is revisited) and sends the admin back to index.html */
-  document.getElementById('logout-btn').addEventListener('click', () => {
-    // Reset UI back to locked state in case of any back/forward cache reuse
-    document.getElementById('dashboard').style.display = 'none';
-    document.getElementById('login-overlay').style.display = 'flex';
-    pwInput.value = '';
-
-    // Return to the site's homepage
-    window.location.href = 'index.html';
-  });
-</script>
 
 <style>
   @keyframes shake {
@@ -572,154 +534,7 @@
 </style>
 
 <!-- Firebase + data loading -->
-<script type="module">
-  import { initializeApp }
-    from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-  import { getFirestore, collection, getDocs }
-    from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey:            "AIzaSyAObkg1J4OJGS9WQPo1u_d3wE0Yn0wz5KM",
-    authDomain:        "harvest-printing-centre.firebaseapp.com",
-    projectId:         "harvest-printing-centre",
-    storageBucket:     "harvest-printing-centre.firebasestorage.app",
-    messagingSenderId: "895161653548",
-    appId:             "1:895161653548:web:571e54b048783d5603f489",
-    measurementId:     "G-4VZPDLK528"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db  = getFirestore(app);
-
-  /* Expose loadBookings globally so the login script can call it */
-  window.loadBookings = async function () {
-    const tableBody   = document.getElementById('bookings-body');
-    const loading     = document.getElementById('loading');
-    const bookingCount = document.getElementById('booking-count');
-    const table       = document.getElementById('bookings-table');
-
-    try {
-      const querySnapshot = await getDocs(collection(db, 'bookings'));
-
-      loading.style.display = 'none';
-      table.style.display   = '';
-
-      let count = 0;
-
-      querySnapshot.forEach((doc) => {
-        count++;
-        const b = doc.data();
-
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${count}</td>
-          <td>${b.name     || '—'}</td>
-          <td>${b.phone    || '—'}</td>
-          <td>${b.email    || '—'}</td>
-          <td><span class="service-pill">${b.service  || '—'}</span></td>
-          <td>${b.quantity || '—'}</td>
-          <td>${b.date     || '—'}</td>
-          <td>${b.message  || '—'}</td>
-        `;
-        tableBody.appendChild(row);
-      });
-
-      bookingCount.textContent = count;
-
-      if (count === 0) {
-        loading.innerHTML = `
-          <div class="empty-state">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-            </svg>
-            <p>No bookings found yet.</p>
-          </div>`;
-        loading.style.display = 'block';
-        table.style.display   = 'none';
-      }
-
-    } catch (err) {
-      loading.textContent = 'Failed to load bookings. Check your connection.';
-      console.error(err);
-    }
-  };
-
-  /* ── PDF Download ── */
-  document.getElementById('download-pdf').addEventListener('click', () => {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-
-    /* Header bar */
-    doc.setFillColor(15, 22, 35);
-    doc.rect(0, 0, 297, 22, 'F');
-
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(13);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Harvest Printing Centre — Booking Records', 14, 14);
-
-    /* Timestamp */
-    const now = new Date().toLocaleString('en-ZA', { dateStyle: 'medium', timeStyle: 'short' });
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(180, 180, 180);
-    doc.text(`Generated: ${now}`, 14, 20);
-
-    /* Collect table rows from DOM */
-    const rows = [];
-    document.querySelectorAll('#bookings-body tr').forEach((tr, i) => {
-      const cells = tr.querySelectorAll('td');
-      rows.push([
-        i + 1,
-        cells[1]?.textContent.trim() || '',
-        cells[2]?.textContent.trim() || '',
-        cells[3]?.textContent.trim() || '',
-        cells[4]?.textContent.trim() || '',
-        cells[5]?.textContent.trim() || '',
-        cells[6]?.textContent.trim() || '',
-        cells[7]?.textContent.trim() || '',
-      ]);
-    });
-
-    doc.autoTable({
-      startY: 26,
-      head: [['#', 'Name', 'Phone', 'Email', 'Service', 'Qty', 'Date', 'Message']],
-      body: rows,
-      headStyles: {
-        fillColor: [15, 22, 35],
-        textColor: [255, 255, 255],
-        fontStyle: 'bold',
-        fontSize: 9,
-      },
-      bodyStyles: {
-        fontSize: 8.5,
-        textColor: [26, 33, 48],
-      },
-      alternateRowStyles: { fillColor: [247, 249, 252] },
-      columnStyles: {
-        0: { cellWidth: 10, halign: 'center' },
-        7: { cellWidth: 45 },
-      },
-      margin: { left: 14, right: 14 },
-      styles: { overflow: 'linebreak', cellPadding: 3.5 },
-      didDrawPage: (data) => {
-        /* Footer with page number */
-        const pageCount = doc.internal.getNumberOfPages();
-        doc.setFontSize(7.5);
-        doc.setTextColor(160, 160, 160);
-        doc.text(
-          `Page ${data.pageNumber} of ${pageCount}  •  Harvest Printing Centre`,
-          data.settings.margin.left,
-          doc.internal.pageSize.height - 8
-        );
-      }
-    });
-
-    const totalCount = document.getElementById('booking-count').textContent;
-    doc.save(`HPC_Bookings_${totalCount}_records_${new Date().toISOString().slice(0,10)}.pdf`);
-  });
-</script>
+<script type="module" src="admin.js"></script>
 
 </body>
 </html>
