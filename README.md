@@ -34,3 +34,14 @@ The database files (rules, seed script, data dictionary) are in the repository's
 5. Open `index.html` with a local server (for example `npx serve website`). ES modules do not run from `file://`.
 
 Never commit `serviceAccountKey.json` or any `.env` file.
+
+## API (mobile app backend)
+The Android app talks to a REST API in the `api/` folder (Node.js, Express, Firebase Admin, Firestore).
+
+- Live API: https://harvest-printing-api.onrender.com (free tier: the first request after idle time can take 30-60 seconds)
+- Public: `GET /services`, `GET /services/:id`
+- Needs login (`Authorization: Bearer <Firebase ID token>`): `GET/POST /bookings`, `PUT/DELETE /bookings/:id`, `GET/POST /orders`
+- Tests: `cd api && npm install && npm test` (also run by GitHub Actions on every push)
+- Local run: copy `api/.env.example` to `api/.env`, add the Firebase service account, then `npm start`
+- Hosting: Render, root directory `api`, environment variables `FIREBASE_SERVICE_ACCOUNT` and `NODE_VERSION=20`
+- Sample orders: `cd database && node seed-orders.js`
