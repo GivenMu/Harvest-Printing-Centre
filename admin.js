@@ -1,7 +1,4 @@
-// Admin dashboard: Google sign-in through Firebase Authentication.
-// ADMIN_EMAILS only decides what the page shows. The real protection is in
-// database/firestore.rules, which lets only these emails read bookings and contacts.
-// Keep both lists the same.
+
 import { GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut }
   from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 import { collection, getDocs }
@@ -31,7 +28,15 @@ document.getElementById("login-btn").addEventListener("click", async () => {
     await signInWithPopup(auth, new GoogleAuthProvider());
   } catch (err) {
     console.error(err);
-    showError("Sign-in was cancelled or failed. Please try again.");
+    const messages = {
+      "auth/unauthorized-domain": "This website's domain is not authorised in Firebase. Add it under Authentication > Settings > Authorized domains.",
+      "auth/operation-not-allowed": "Google sign-in is not switched on in Firebase (Authentication > Sign-in method).",
+      "auth/popup-blocked": "Your browser blocked the sign-in pop-up. Allow pop-ups for this site and try again.",
+      "auth/popup-closed-by-user": "The sign-in window was closed before it finished. Please try again.",
+      "auth/cancelled-popup-request": "The sign-in window was closed before it finished. Please try again.",
+      "auth/network-request-failed": "Network problem. Check your internet connection and try again.",
+    };
+    showError(messages[err.code] || `Sign-in failed (${err.code || "unknown error"}).`);
   }
 });
 
