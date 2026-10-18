@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>API Test Tool | Harvest Printing Centre</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 760px; margin: 30px auto; padding: 0 16px; color: #222; }
+    h1 { color: #8b1a1a; margin-bottom: 4px; }
+    .note { background: #fff4e5; border: 1px solid #f0c27b; padding: 10px 14px; border-radius: 6px; font-size: 14px; }
+    button { background: #8b1a1a; color: #fff; border: 0; padding: 10px 16px; border-radius: 6px; cursor: pointer; margin: 4px 6px 4px 0; font-size: 14px; }
+    button.secondary { background: #555; }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    textarea, pre { width: 100%; box-sizing: border-box; background: #f6f6f6; border: 1px solid #ddd; border-radius: 6px; padding: 10px; font-family: Consolas, monospace; font-size: 12px; }
+    pre { white-space: pre-wrap; word-break: break-word; min-height: 60px; }
+    section { margin-top: 22px; }
+    #who { font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>API Test Tool</h1>
+  <p>Developer tool for the team: sign in, copy your Firebase token for Postman, or call the API from here.</p>
+  <p class="note">Tokens expire after about 1 hour. Press <b>Refresh token</b> to get a new one. Never share your token publicly. This page is for development only and should be deleted before the real launch.</p>
+
+  <section>
+    <button id="signin">Sign in with Google</button>
+    <button id="signout" class="secondary" disabled>Sign out</button>
+    <p>Signed in as: <span id="who">nobody</span></p>
+  </section>
+
+  <section>
+    <h3>1. Your token (for Postman)</h3>
+    <textarea id="token" rows="6" readonly placeholder="Sign in to see your token"></textarea>
+    <button id="refresh" disabled>Refresh token</button>
+    <button id="copy" disabled>Copy token</button>
+    <button id="copyheader" disabled>Copy full header</button>
+    <p style="font-size:13px">In Postman: Headers tab, key <code>Authorization</code>, value <code>Bearer &lt;token&gt;</code>.</p>
+  </section>
+
+  <section>
+    <h3>2. Try the API from here</h3>
+    <button class="call" data-m="GET" data-p="/services">GET /services (public)</button>
+    <button class="call" data-m="GET" data-p="/bookings">GET /bookings</button>
+    <button class="call" data-m="GET" data-p="/orders">GET /orders</button>
+    <button class="call" id="postOrder">POST /orders (sample)</button>
+    <button class="call secondary" id="noToken">GET /orders with NO token (expect 401)</button>
+    <pre id="out">The response will appear here.</pre>
+  </section>
+
+<script type="module">
+  import { GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut }
+    from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+  import { auth } from "./firebase-init.js";
+
+  const API = "https://harvest-printing-api.onrender.com";
+  const $ = (id) => document.getElementById(id);
+  let user = null;
+
+  const setSignedIn = (u) => {
+    user = u;
+    $("who").textContent = u ? (u.email || u.uid) : "nobody";
+    ["signout", "refresh", "copy", "copyheader"].forEach((id) => ($(id).disabled = !u));
+    $("signin").disabled = !!u;
+    if (!u) $("token").value = "";
+  };
+
+  const getToken = async (force) => {
+    const t = await user.getIdToken(force);
+    $("token").value = t;
+    return t;
+  };
+
+  onAuthStateChanged(auth, async (u) => {
+    setSignedIn(u);
+    if (u) await getToken(false);
+  });
+
+  $("signin").onclick = async () => {
+    try { await signInWithPopup(auth, new GoogleAuthProvider()); }
+    catch (e) { $("out").textContent = "Sign-in failed: " + (e.code || e.message); }
+  };
+  $("signout").onclick = () => signOut(auth);
+  $("refresh").onclick = () => getToken(true);
+  $("copy").onclick = async () => { await navigator.clipboard.writeText($("token").value); $("out").textContent = "Token copied."; };
+  $("copyheader").onclick = async () => { await navigator.clipboard.writeText("Bearer " + $("token").value); $("out").textContent = "Header value copied (starts with Bearer)."; };
+
+  async function call(method, path, body, withToken = true) {
+    $("out").textContent = "Calling " + method + " " + path + " ... (the free server can take up to a minute to wake up)";
+    const headers = { "Content-Type": "application/json" };
+    if (withToken) {
+      if (!user) { $("out").textContent = "Sign in first."; return; }
+      headers.Authorization = "Bearer " + (await getToken(false));
+    }
+    try {
+      const res = await fetch(API + path, { method, headers, body: body ? JSON.stringify(body) : undefined });
+      const text = await res.text();
+      let pretty = text;
+      try { pretty = JSON.stringify(JSON.parse(text), null, 2); } catch {}
+      $("out").textContent = res.status + " " + res.statusText + "\n\n" + pretty;
+    } catch (e) {
+      $("out").textContent = "Could not reach the API: " + e.message;
+    }
+  }
+
+  document.querySelectorAll("button.call[data-m]").forEach((b) => {
+    b.onclick = () => call(b.dataset.m, b.dataset.p, null, b.dataset.p !== "/services");
+  });
+  $("postOrder").onclick = () =>
+    call("POST", "/orders", { items: [{ serviceId: "business-cards", quantity: 2 }] });
+  $("noToken").onclick = () => call("GET", "/orders", null, false);
+</script>
+</body>
+</html>
