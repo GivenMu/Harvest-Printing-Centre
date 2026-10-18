@@ -1,0 +1,8 @@
+{
+  "name": "harvest-database-seed",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Seeds the Harvest Printing Centre Firestore collections with at least 10 documents each",
+  "scripts": { "seed": "node seed.js" },
+  "dependencies": { "firebase-admin": "^12.0.0" }
+}

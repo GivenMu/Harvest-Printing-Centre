@@ -1,0 +1,65 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Admins are the Google accounts allowed to read customer data.
+    // Keep this list identical to ADMIN_EMAILS in website/admin.js.
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email.lower() in [
+          'kelebogile.mashaba22@gmail.com',
+          'muneinev2@gmail.com',
+          'lebokea17@gmail.com',
+          'mphonethomboni@gmail.com',
+          'givenmutshotsho@gmail.com'
+        ];
+    }
+
+    function validBooking(d) {
+      return d.keys().hasOnly(['name','phone','email','service','serviceId','quantity','date','message','status','createdAt'])
+        && d.keys().hasAll(['name','phone','email','service','quantity','status','createdAt'])
+        && d.name is string && d.name.size() >= 2 && d.name.size() <= 100
+        && d.phone is string && d.phone.size() >= 9 && d.phone.size() <= 20
+        && d.email is string && d.email.size() <= 150 && d.email.matches('.+@.+\\..+')
+        && d.service is string && d.service.size() >= 1 && d.service.size() <= 80
+        && (!('serviceId' in d) || d.serviceId == null || d.serviceId is string)
+        && d.quantity is int && d.quantity >= 1 && d.quantity <= 100000
+        && (!('date' in d) || (d.date is string && d.date.size() <= 10))
+        && (!('message' in d) || (d.message is string && d.message.size() <= 2000))
+        && d.status == 'Pending'
+        && d.createdAt == request.time;
+    }
+
+    function validContact(d) {
+      return d.keys().hasOnly(['name','email','phone','service','message','status','createdAt'])
+        && d.keys().hasAll(['name','email','message','status','createdAt'])
+        && d.name is string && d.name.size() >= 2 && d.name.size() <= 100
+        && d.email is string && d.email.size() <= 150 && d.email.matches('.+@.+\\..+')
+        && (!('phone' in d) || (d.phone is string && d.phone.size() <= 20))
+        && (!('service' in d) || (d.service is string && d.service.size() <= 80))
+        && d.message is string && d.message.size() >= 5 && d.message.size() <= 2000
+        && d.status == 'New'
+        && d.createdAt == request.time;
+    }
+
+    // Visitors can submit a booking but cannot read, change or delete any.
+    match /bookings/{id} {
+      allow create: if validBooking(request.resource.data);
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /contacts/{id} {
+      allow create: if validContact(request.resource.data);
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Public catalogue: anyone can read, nobody can write from the browser.
+    // Data is loaded with database/seed.js (Admin SDK) or edited in the Firebase console.
+    match /services/{id}  { allow read: if true; allow write: if false; }
+    match /portfolio/{id} { allow read: if true; allow write: if false; }
+
+    // Everything else is closed.
+    match /{document=**} { allow read, write: if false; }
+  }
+}
