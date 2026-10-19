@@ -135,8 +135,7 @@ Never commit `serviceAccountKey.json`, your Firebase key file or any `.env` file
 | Munei Nevhuthanda | Test plan, Postman tests, bug log, user guide |
 | Portia Mashaba | Database design, ERD, data dictionary, demo video |
 
-## Release notes
-See `RELEASE_NOTES.md` for every change since the prototype.
+
 
 ## Demo video
 https://youtu.be/U77z-zHZVnk
