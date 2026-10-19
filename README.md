@@ -139,4 +139,4 @@ Never commit `serviceAccountKey.json`, your Firebase key file or any `.env` file
 See `RELEASE_NOTES.md` for every change since the prototype.
 
 ## Demo video
-Link to be added here once the video is uploaded.
+https://youtu.be/U77z-zHZVnk
