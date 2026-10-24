@@ -91,7 +91,7 @@ Booking (phone = digits only, date = `YYYY-MM-DD`):
 ### Run and test the API
 - Tests: `cd api && npm install && npm test`
 - Local run: copy `api/.env.example` to `api/.env`, add the Firebase service account on one line, then `npm start` and open http://localhost:3000/services
-- Hosting: Render, root directory `api`, build command `npm install`, start command `npm start`, environment variables `FIREBASE_SERVICE_ACCOUNT` and `NODE_VERSION=20`
+- Hosting: Render, root directory `api`, build command `npm install`, start command `npm start`, environment variables `FIREBASE_SERVICE_ACCOUNT` and `NODE_VERSION=20` (optional: `MOBILE_FIREBASE_PROJECT_IDS`, default `harvest-printing-centre-a7eb8`, the Android app's Firebase project whose tokens are also accepted)
 
 ## Database (Firestore)
 
