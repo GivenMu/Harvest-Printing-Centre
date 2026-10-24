@@ -1,4 +1,5 @@
-// Mock Firebase so no real project is needed. Token "good-token" = user u1, "other-token" = user u2.
+// Mock Firebase so no real project is needed. Token "good-token" = user u1, "other-token" = user u2,
+// "mobile-token" = user u3 from the Android app's Firebase project.
 jest.mock('../firebase', () => {
   const makeFakeDb = require('./fakeDb');
   const db = makeFakeDb({
@@ -17,7 +18,13 @@ jest.mock('../firebase', () => {
     }),
     firestore: { FieldValue: { serverTimestamp: () => 'TS' } },
   };
-  return { admin, db };
+  const mobileAuth = {
+    verifyIdToken: async (t) => {
+      if (t !== 'mobile-token') throw new Error('bad token');
+      return { uid: 'u3', email: 'u3@test.com' };
+    },
+  };
+  return { admin, db, extraAuths: [mobileAuth] };
 });
 
 const request = require('supertest');
@@ -58,6 +65,12 @@ describe('authentication', () => {
   });
   test('GET /orders with a bad token returns 401', async () => {
     expect((await request(app).get('/orders').set(auth('wrong'))).statusCode).toBe(401);
+  });
+  test('a token from the Android app\'s project can place an order', async () => {
+    const res = await request(app).post('/orders').set(auth('mobile-token'))
+      .send({ items: [{ serviceId: 'business-cards', quantity: 1 }] });
+    expect(res.statusCode).toBe(201);
+    expect(res.body.userId).toBe('u3');
   });
 });
 

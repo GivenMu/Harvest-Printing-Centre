@@ -13,5 +13,18 @@ if (!admin.apps.length) {
   }
 }
 
+// The Android app signs users in to its own Firebase project, so its tokens are
+// checked against that project too. Checking a token only needs the project ID.
+// Comma-separated list; set MOBILE_FIREBASE_PROJECT_IDS to "" to turn this off.
+const mobileProjectIds = (process.env.MOBILE_FIREBASE_PROJECT_IDS ?? 'harvest-printing-centre-a7eb8')
+  .split(',').map((id) => id.trim()).filter(Boolean);
+
+const extraAuths = mobileProjectIds.map((projectId) => {
+  const name = `mobile-${projectId}`;
+  const app = admin.apps.find((a) => a && a.name === name)
+    || admin.initializeApp({ ...admin.app().options, projectId }, name);
+  return app.auth();
+});
+
 const db = admin.firestore();
-module.exports = { admin, db };
+module.exports = { admin, db, extraAuths };
