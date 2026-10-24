@@ -117,6 +117,7 @@ describe('orders', () => {
     expect(res.statusCode).toBe(201);
     expect(res.body.total).toBe(600);
     expect(res.body.requiresQuote).toBe(true);
+    expect(res.body.customerEmail).toBe('u1@test.com');
     const list = await request(app).get('/orders').set(auth());
     expect(list.body.length).toBe(1);
   });

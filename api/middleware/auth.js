@@ -20,7 +20,7 @@ async function requireAuth(req, res, next) {
 
   const decoded = await verify(match[1]);
   if (!decoded) return res.status(401).json({ error: 'Invalid or expired token' });
-  req.user = { uid: decoded.uid, email: decoded.email || null };
+  req.user = { uid: decoded.uid, email: decoded.email || null, name: decoded.name || null };
   next();
 }
 

@@ -1,7 +1,7 @@
 
 import { GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut }
   from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-import { collection, getDocs }
+import { collection, getDocs, doc, updateDoc }
   from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { auth, db } from "./firebase-init.js";
 
@@ -52,6 +52,7 @@ onAuthStateChanged(auth, async (user) => {
     document.getElementById("admin-email").textContent = user.email;
     loadBookings();
     loadContacts();
+    loadOrders();
   } else {
     dashboard.style.display = "none";
     overlay.style.display = "flex";
@@ -127,6 +128,73 @@ async function loadContacts() {
   } catch (err) {
     console.error(err);
     showEmpty(loading, table, "Failed to load enquiries. Check your connection and permissions.");
+  }
+}
+
+const ORDER_STATUSES = ["Pending", "Confirmed", "Completed"];
+const rand = (n) => `R${Number(n).toFixed(2)}`;
+
+function orderDate(o) {
+  if (!o.createdAt?.seconds) return "—";
+  return new Date(o.createdAt.seconds * 1000)
+    .toLocaleString("en-ZA", { dateStyle: "medium", timeStyle: "short" });
+}
+
+function orderCustomer(o) {
+  const parts = [o.customerName, o.customerEmail].filter(Boolean);
+  // Orders placed before names were saved only have the user's ID.
+  return parts.length ? parts.join(" · ") : `App user ${String(o.userId || "").slice(0, 8)}`;
+}
+
+function orderItems(o) {
+  return (o.items || []).map((it) =>
+    `${it.quantity} x ${it.name || it.serviceId}${it.unitPrice == null ? " (quote)" : ` @ ${rand(it.unitPrice)}`}`
+  ).join("\n") || "—";
+}
+
+function statusSelect(id, current) {
+  const select = document.createElement("select");
+  select.className = "status-select";
+  ORDER_STATUSES.forEach((s) => select.add(new Option(s, s, false, s === current)));
+  select.addEventListener("change", async () => {
+    const previous = current;
+    select.disabled = true;
+    try {
+      await updateDoc(doc(db, "orders", id), { status: select.value });
+      current = select.value;
+    } catch (err) {
+      console.error(err);
+      select.value = previous;
+      alert("Could not update the order status. Check your connection and permissions.");
+    } finally {
+      select.disabled = false;
+    }
+  });
+  return select;
+}
+
+async function loadOrders() {
+  const body = document.getElementById("orders-body");
+  const loading = document.getElementById("orders-loading");
+  const table = document.getElementById("orders-table");
+  body.replaceChildren();
+  try {
+    const snap = await getDocs(collection(db, "orders"));
+    const rows = snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort(newestFirst);
+    document.getElementById("order-count").textContent = rows.length;
+    if (!rows.length) return showEmpty(loading, table, "No app orders yet.");
+    loading.style.display = "none";
+    table.style.display = "";
+    rows.forEach((o, i) => {
+      const total = o.requiresQuote ? `${rand(o.total || 0)} + quote` : rand(o.total || 0);
+      addRow(body, [i + 1, orderDate(o), orderCustomer(o), orderItems(o), total, ""]);
+      const cells = body.lastElementChild.children;
+      cells[3].style.whiteSpace = "pre-line";
+      cells[5].appendChild(statusSelect(o.id, o.status || "Pending"));
+    });
+  } catch (err) {
+    console.error(err);
+    showEmpty(loading, table, "Failed to load orders. Check your connection and permissions.");
   }
 }
 

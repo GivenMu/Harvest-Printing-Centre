@@ -30,6 +30,8 @@ router.post('/', async (req, res, next) => {
     }
     const data = {
       userId: req.user.uid,
+      customerName: req.user.name,
+      customerEmail: req.user.email,
       items: lines,
       total,
       requiresQuote,
