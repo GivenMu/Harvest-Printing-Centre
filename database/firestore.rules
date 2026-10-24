@@ -54,6 +54,14 @@ service cloud.firestore {
       allow read, update, delete: if isAdmin();
     }
 
+    // Orders are created by the API (Admin SDK). Admins can view them and change the status only.
+    match /orders/{id} {
+      allow read: if isAdmin();
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+        && request.resource.data.status in ['Pending', 'Confirmed', 'Completed'];
+    }
+
     // Public catalogue: anyone can read, nobody can write from the browser.
     // Data is loaded with database/seed.js (Admin SDK) or edited in the Firebase console.
     match /services/{id}  { allow read: if true; allow write: if false; }
