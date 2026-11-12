@@ -4,10 +4,11 @@ import {
   collection, addDoc, getDocs, query, orderBy, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { db } from "./firebase-init.js";
+import {
+  emailError, phoneError, nameError, normaliseEmail, normalisePhone
+} from "./validation.js";
 
 const WEB3FORMS_KEY = "53c53bde-bff6-4db5-bb40-06105f7b483f";
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PHONE_RE = /^\+?[0-9 ()-]{9,18}$/;
 
 const clean = (v) => String(v ?? "").trim();
 
@@ -15,6 +16,65 @@ function setStatus(el, text, color) {
   if (!el) return;
   el.textContent = text;
   el.style.color = color;
+}
+
+// ---------------- Per-field error messages ----------------
+// Each field gets a small message under it, so the user sees exactly what to fix.
+function fieldErrorEl(input) {
+  let el = input.parentElement.querySelector(":scope > .field-error");
+  if (!el) {
+    el = document.createElement("small");
+    el.className = "field-error";
+    el.id = `${input.form.id}-${input.name}-error`;
+    el.setAttribute("aria-live", "polite");
+    input.insertAdjacentElement("afterend", el);
+    input.setAttribute("aria-describedby", el.id);
+  }
+  return el;
+}
+
+function showFieldError(input, message) {
+  if (!input) return;
+  fieldErrorEl(input).textContent = message;
+  input.classList.toggle("input-invalid", Boolean(message));
+  input.setAttribute("aria-invalid", message ? "true" : "false");
+}
+
+// Checks one field with its rule and shows the result. Returns true when valid.
+function checkField(input, rule) {
+  if (!input) return true;
+  const message = rule(input.value);
+  showFieldError(input, message);
+  return !message;
+}
+
+// Checks fields as the user leaves them, then again on every key press once an error is showing.
+function attachLiveChecks(rules) {
+  for (const [input, rule] of rules) {
+    if (!input) continue;
+    input.addEventListener("blur", () => checkField(input, rule));
+    input.addEventListener("input", () => {
+      if (input.classList.contains("input-invalid")) checkField(input, rule);
+    });
+  }
+}
+
+// Runs every rule, shows all errors, and moves focus to the first wrong field.
+function checkAll(rules) {
+  let first = null;
+  for (const [input, rule] of rules) {
+    if (!checkField(input, rule) && !first) first = input;
+  }
+  if (first) first.focus();
+  return !first;
+}
+
+function clearFieldErrors(form) {
+  form.querySelectorAll(".field-error").forEach((el) => { el.textContent = ""; });
+  form.querySelectorAll(".input-invalid").forEach((el) => {
+    el.classList.remove("input-invalid");
+    el.setAttribute("aria-invalid", "false");
+  });
 }
 
 async function sendEmail(subject, fields) {
@@ -59,45 +119,70 @@ async function loadServiceOptions(select, extraOption) {
   }
 }
 
-function validateCommon(d, errors) {
-  if (d.name.length < 2 || d.name.length > 100) errors.push("Please enter your full name.");
-  if (!EMAIL_RE.test(d.email) || d.email.length > 150) errors.push("Please enter a valid email address.");
-  if (d.phone && !PHONE_RE.test(d.phone)) errors.push("Please enter a valid phone number (digits only).");
-  if (d.message.length > 2000) errors.push("The message is too long (maximum 2000 characters).");
+const messageError = (min) => (v) => {
+  const text = clean(v);
+  if (text.length < min) return min > 0 ? "Please write a short message (at least 5 characters)." : "";
+  if (text.length > 2000) return "The message is too long (maximum 2000 characters).";
+  return "";
+};
+
+// Today's date as YYYY-MM-DD in the visitor's own time zone.
+function todayLocal() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 // ---------------- Booking form ----------------
 const bookingForm = document.getElementById("booking-form");
 if (bookingForm) {
+  bookingForm.noValidate = true; // our own messages replace the browser's pop-ups
   const f = bookingForm.elements;
   loadServiceOptions(f.namedItem("service"));
+  const dateInput = f.namedItem("date");
+  if (dateInput) dateInput.min = todayLocal();
+
+  const rules = [
+    [f.namedItem("name"), nameError],
+    [f.namedItem("phone"), (v) => phoneError(v, { required: true })],
+    [f.namedItem("email"), emailError],
+    [f.namedItem("service"), (v) => (clean(v) ? "" : "Please choose a service.")],
+    [f.namedItem("quantity"), (v) => {
+      const raw = clean(v);
+      if (!/^\d+$/.test(raw)) return "Quantity must be a whole number of 1 or more.";
+      const q = Number(raw);
+      if (q < 1) return "Quantity must be at least 1.";
+      if (q > 100000) return "For more than 100 000 items, please contact us directly.";
+      return "";
+    }],
+    [dateInput, (v) => {
+      const d = clean(v);
+      if (!d) return "";
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return "Please choose a valid date.";
+      return d < todayLocal() ? "The preferred date cannot be in the past." : "";
+    }],
+    [f.namedItem("message"), messageError(0)],
+  ];
+  attachLiveChecks(rules);
 
   bookingForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const status = document.getElementById("form-status");
+    if (!checkAll(rules)) {
+      setStatus(status, "Please fix the highlighted fields.", "red");
+      return;
+    }
+
     const select = f.namedItem("service");
     const data = {
       name: clean(f.namedItem("name").value),
-      phone: clean(f.namedItem("phone").value),
-      email: clean(f.namedItem("email").value),
+      phone: normalisePhone(f.namedItem("phone").value), // stored as 0821234567
+      email: normaliseEmail(f.namedItem("email").value),
       service: clean(select.value),
       serviceId: select.selectedOptions[0]?.dataset.serviceId || null,
       quantity: parseInt(f.namedItem("quantity").value, 10),
-      date: clean(f.namedItem("date").value),
+      date: clean(dateInput?.value),
       message: clean(f.namedItem("message").value),
     };
-
-    const errors = [];
-    validateCommon(data, errors);
-    if (!PHONE_RE.test(data.phone)) errors.push("Please enter a valid phone number (digits only).");
-    if (!data.service) errors.push("Please choose a service.");
-    if (!Number.isInteger(data.quantity) || data.quantity < 1 || data.quantity > 100000)
-      errors.push("Quantity must be a whole number of 1 or more.");
-    if (data.date) {
-      const today = new Date(); today.setHours(0, 0, 0, 0);
-      if (new Date(data.date) < today) errors.push("The preferred date cannot be in the past.");
-    }
-    if (errors.length) { setStatus(status, errors[0], "red"); return; }
 
     setStatus(status, "Sending...", "#555");
     try {
@@ -116,6 +201,7 @@ if (bookingForm) {
         emailed ? "green" : "orange"
       );
       bookingForm.reset();
+      clearFieldErrors(bookingForm);
     } catch (err) {
       console.error(err);
       setStatus(status, "❌ Error submitting booking. Please try again.", "red");
@@ -126,24 +212,34 @@ if (bookingForm) {
 // ---------------- Contact form ----------------
 const contactForm = document.getElementById("contact-form");
 if (contactForm) {
+  contactForm.noValidate = true;
   const f = contactForm.elements;
   loadServiceOptions(f.namedItem("service"), "Other / Custom Work");
+
+  const rules = [
+    [f.namedItem("name"), nameError],
+    [f.namedItem("email"), emailError],
+    [f.namedItem("phone"), (v) => phoneError(v, { required: false })], // optional on this form
+    [f.namedItem("message"), messageError(5)],
+  ];
+  attachLiveChecks(rules);
 
   contactForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const status = document.getElementById("form-status");
+    if (!checkAll(rules)) {
+      setStatus(status, "Please fix the highlighted fields.", "red");
+      return;
+    }
+
+    const phoneRaw = clean(f.namedItem("phone").value);
     const data = {
       name: clean(f.namedItem("name").value),
-      email: clean(f.namedItem("email").value),
-      phone: clean(f.namedItem("phone").value),
+      email: normaliseEmail(f.namedItem("email").value),
+      phone: phoneRaw ? normalisePhone(phoneRaw) : "",
       service: clean(f.namedItem("service").value),
       message: clean(f.namedItem("message").value),
     };
-
-    const errors = [];
-    validateCommon(data, errors);
-    if (data.message.length < 5) errors.push("Please write a short message.");
-    if (errors.length) { setStatus(status, errors[0], "red"); return; }
 
     setStatus(status, "Sending...", "#555");
     try {
@@ -159,6 +255,7 @@ if (contactForm) {
         emailed ? "green" : "orange"
       );
       contactForm.reset();
+      clearFieldErrors(contactForm);
     } catch (err) {
       console.error(err);
       setStatus(status, "❌ Error sending message. Please try again.", "red");

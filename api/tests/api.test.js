@@ -125,6 +125,13 @@ describe('orders', () => {
 
 describe('validators', () => {
   test('email', () => { expect(v.isValidEmail('a@b.com')).toBe(true); expect(v.isValidEmail('')).toBe(false); });
+  test('email rejects badly formed addresses', () => {
+    for (const bad of ['a@b.c', 'john@gmail..com', '.john@gmail.com', 'john.@gmail.com',
+      'john@@gmail.com', 'john@gmail', 'john @gmail.com', 'x@-bad.com']) {
+      expect(v.isValidEmail(bad)).toBe(false);
+    }
+    expect(v.isValidEmail('John.Doe+print@company.co.za')).toBe(true);
+  });
   test('phone is digits only', () => { expect(v.isValidPhone('0821234567')).toBe(true); expect(v.isValidPhone('07a1')).toBe(false); });
   test('quantity and date rules', () => {
     expect(v.isValidDate('2026-02-30')).toBe(false);
