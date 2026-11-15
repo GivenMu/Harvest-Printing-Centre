@@ -138,4 +138,4 @@ Never commit `serviceAccountKey.json`, your Firebase key file or any `.env` file
 
 
 ## Demo video
-https://youtu.be/U77z-zHZVnk
+https://youtu.be/wIq6MgFF1KU?si=eJ9Aa_rix72mlgqY
